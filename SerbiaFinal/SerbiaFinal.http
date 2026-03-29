@@ -1,0 +1,6 @@
+@SerbiaFinal_HostAddress = http://localhost:5296
+
+GET {{SerbiaFinal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
