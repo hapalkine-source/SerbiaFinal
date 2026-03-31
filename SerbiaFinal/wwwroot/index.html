@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>План переезда 2028</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f7f6;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background: #fff;
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+            li:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+            button:active {
+                transform: scale(0.98);
+            }
+
+        .btn-load {
+            background: #3498db;
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+            .btn-load:hover {
+                background: #2980b9;
+            }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+
+            .btn-delete:hover {
+                background: #c0392b;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="newGoalInput" placeholder="Что нужно сделать для Сербии?"
+                   style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <button onclick="addGoal()" style="background: #2ecc71; color: white;">+</button>
+        </div>
+
+        <h1>План переезда 2028</h1>
+        <button class="btn-load" onclick="loadGoals()">Показать цели из SQL</button>
+        <ul id="goalsList"></ul>
+    </div>
+
+    <script>
+        async function addGoal() {
+            const input = document.getElementById('newGoalInput');
+            const text = input.value;
+            if (!text) return alert("Напиши хоть что-нибудь!");
+
+            // Отправляем POST запрос на бэкенд
+            await fetch(`http://localhost:5296/api/Goals?text=${encodeURIComponent(text)}`, {
+                method: 'POST'
+            });
+
+            input.value = ''; // Чистим поле
+            loadGoals();      // Сразу обновляем список на экране
+        }
+
+        async function loadGoals() {
+            try {
+                const response = await fetch('http://localhost:5296/api/Goals'); // ПОРТ ПРОВЕРЕН!
+                const goals = await response.json();
+
+                const list = document.getElementById('goalsList');
+                list.innerHTML = '';
+
+                goals.forEach(g => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                            <span>${g.description}</span>
+                            <button class="btn-delete" onclick="deleteGoal(${g.id})">Удалить</button>
+                        `;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                alert("Ошибка связи с сервером! Проверь, запущен ли бэкенд.");
+            }
+        }
+
+        async function deleteGoal(id) {
+            if (!confirm('Точно удалить цель?')) return;
+            await fetch(`http://localhost:5296/api/Goals/${id}`, { method: 'DELETE' });
+            loadGoals();
+        }
+    </script>
+</body>
+</html>
