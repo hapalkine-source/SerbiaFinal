@@ -106,15 +106,22 @@
             const text = input.value;
             if (!text) return alert("Напиши хоть что-нибудь!");
 
-            // Отправляем POST запрос на бэкенд
-            await fetch(`http://localhost:5296/api/Goals?text=${encodeURIComponent(text)}`, {
-                method: 'POST'
+            const response = await fetch('http://localhost:5296/api/Goals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: text })
             });
 
-            input.value = ''; // Чистим поле
-            loadGoals();      // Сразу обновляем список на экране
+            // ПРОВЕРЯЕМ СТАТУС ОТВЕТА
+            if (response.ok) {
+                input.value = '';
+                loadGoals();
+            } else {
+                const errorData = await response.json();
+                // Выводим текст ошибки, который прислал сервер (C#)
+                alert("Ошибка: " + (errorData.errors?.Description || "Минимум 3 символа!"));
+            }
         }
-
         async function loadGoals() {
             try {
                 const response = await fetch('http://localhost:5296/api/Goals'); // ПОРТ ПРОВЕРЕН!

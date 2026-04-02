@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SerbiaFinal;
+namespace SerbiaFinal.DTOs;
+using SerbiaFinal.DTOs;
+using static SerbiaFinal.Goals;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -12,14 +15,21 @@ public class GoalsController : ControllerBase
         _context = context; // Получаем наш "Мост"
     }
 
-    [HttpPost] // Кнопка "Создать"
-    public IActionResult CreateGoal(string text)
+    [HttpPost]
+    public IActionResult CreateGoal([FromBody] CreateGoalDto dto)
     {
-        var newGoal = new Goals { Description = text };
-        _context.Goals.Add(newGoal); // Кладем в корзину
-        _context.SaveChanges();     // Записываем в реальную базу
-        return Ok("Цель сохранена в SQL!");
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState); // Отправляем ошибки клиенту
+        }
+
+        var goal = new Goals { Description = dto.Description };
+        _context.Goals.Add(goal);
+        _context.SaveChanges();
+        return Ok(goal);
     }
+
+
     [HttpGet] // Кнопка "Получить список"
     public IActionResult GetGoals()
     {
